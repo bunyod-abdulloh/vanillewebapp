@@ -1,0 +1,32 @@
+<svg
+  width="1200"
+  height="240"
+  viewBox="0 0 1200 240"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <!-- Background (transparent) -->
+  <rect width="1200" height="240" fill="transparent"/>
+
+  <!-- Logo Text -->
+  <text
+    x="600"
+    y="125"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="120"
+    fill="#a8000b"
+    letter-spacing="2"
+  >
+    Le Vanille
+  </text>
+
+  <!-- Underline swoosh -->
+  <path
+    d="M250 155 C 450 200, 750 200, 950 155"
+    stroke="#a8000b"
+    stroke-width="12"
+    fill="none"
+    stroke-linecap="round"
+  />
+</svg>
