@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Anketa - Le Vanille</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js?2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-primary: #0f0f12;
+            --bg-secondary: #16181d;
+            --text-primary: #f1f1f1;
+            --text-secondary: #a0a0a5;
+            --accent: #d32f2f;
+            --accent-dark: #b71c1c;
+            --glass: rgba(30, 30, 40, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.37);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0a0a0e 0%, #111216 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .glass {
+            background: var(--glass);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-soft);
+        }
+
+        #map {
+            height: 250px;
+            width: 100%;
+            border-radius: 1.5rem;
+            border: 1px solid var(--glass-border);
+            z-index: 1;
+        }
+
+        .custom-input {
+            background: var(--bg-secondary);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .custom-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(211, 47, 47, 0.2);
+            outline: none;
+        }
+
+        /* Leaflet pultlarini (zoom) dizaynga moslash */
+        .leaflet-bar a {
+            background-color: var(--bg-secondary) !important;
+            color: white !important;
+            border-bottom: 1px solid var(--glass-border) !important;
+        }
+    </style>
+</head>
+<body class="px-5 pt-8 pb-10">
+
+<div class="max-w-md mx-auto space-y-6">
+    <header class="text-center space-y-2">
+        <h2 class="text-3xl font-black tracking-tight">Ro'yxatdan o'tish</h2>
+        <p class="text-secondary text-sm text-gray-400">Ma'lumotlarni to'ldiring va manzilingizni belgilang</p>
+    </header>
+
+    <div class="space-y-4">
+        <div class="space-y-1.5">
+            <label class="text-xs font-bold uppercase tracking-widest text-gray-400 ml-2">To'liq ism</label>
+            <input type="text" id="userName" placeholder="Masalan: Aziz Azizov"
+                   class="custom-input w-full p-4 rounded-2xl text-white">
+        </div>
+
+        <div class="space-y-1.5">
+            <label class="text-xs font-bold uppercase tracking-widest text-gray-400 ml-2">Telefon raqam</label>
+            <input type="tel" id="phone" placeholder="+998 90 123 45 67"
+                   class="custom-input w-full p-4 rounded-2xl text-white">
+        </div>
+
+        <div class="space-y-1.5">
+            <label class="text-xs font-bold uppercase tracking-widest text-gray-400 ml-2">Do'kon nomi</label>
+            <input type="text" id="shopName" placeholder="Masalan: Havas"
+                   class="custom-input w-full p-4 rounded-2xl text-white">
+        </div>
+
+        <div class="space-y-1.5">
+            <label class="text-xs font-bold uppercase tracking-widest text-gray-400 ml-2">Filial</label>
+            <input type="text" id="filialName" placeholder="Masalan: Chilonzor"
+                   class="custom-input w-full p-4 rounded-2xl text-white">
+        </div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="flex justify-between items-center px-2">
+            <label class="text-xs font-bold uppercase tracking-widest text-gray-400">Yetkazib berish manzili</label>
+            <button type="button" onclick="autoLocate()"
+                    class="text-xs font-bold text-red-500 hover:text-red-400 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Aniqlash
+            </button>
+        </div>
+
+        <div id="map" class="shadow-2xl"></div>
+
+        <div class="glass p-4 rounded-2xl text-center">
+            <p id="coordsDisplay" class="text-sm font-medium text-gray-300">📍 Xaritadan nuqtani tanlang</p>
+            <div id="errorLog" class="hidden text-[10px] text-red-500 mt-2 text-left bg-black/20 p-2 rounded-lg"></div>
+        </div>
+    </div>
+
+    <button onclick="submitForm()"
+            class="w-full py-5 bg-gradient-to-r from-red-600 to-red-800 rounded-2xl text-xl font-bold shadow-xl active:scale-[0.97] transition-all">
+        Tasdiqlash va Saqlash
+    </button>
+</div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    let lat = 41.31108;
+    let lon = 69.24056;
+
+    // Xaritani sozlash (Dark mode ga yaqinroq ko'rinish uchun filter qo'shsa ham bo'ladi)
+    const map = L.map('map').setView([lat, lon], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    let marker = L.marker([lat, lon], { draggable: true }).addTo(map);
+
+    marker.on('dragend', function() {
+        const pos = marker.getLatLng();
+        updateCoords(pos.lat, pos.lng, "Marker surildi");
+    });
+
+    map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        updateCoords(e.latlng.lat, e.latlng.lng, "Xarita bosildi");
+    });
+
+    function updateCoords(l, n, source) {
+        lat = l;
+        lon = n;
+        document.getElementById('coordsDisplay').innerHTML = `📍 <span class="text-white">${lat.toFixed(5)}, ${lon.toFixed(5)}</span> <br><span class="text-[10px] text-gray-500 uppercase">${source}</span>`;
+        tg.HapticFeedback.selectionChanged();
+    }
+
+    function autoLocate() {
+        tg.HapticFeedback.impactOccurred('medium');
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const nLat = pos.coords.latitude;
+                    const nLon = pos.coords.longitude;
+                    map.setView([nLat, nLon], 17);
+                    marker.setLatLng([nLat, nLon]);
+                    updateCoords(nLat, nLon, "GPS orqali aniqlandi");
+                },
+                (err) => {
+                    tg.showAlert("Joylashuvni aniqlashda xatolik: " + err.message);
+                },
+                { enableHighAccuracy: true }
+            );
+        }
+    }
+
+    function submitForm() {
+        const name = document.getElementById('userName').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const shopName = document.getElementById('shopName').value.trim();
+        let filialName = document.getElementById('filialName').value.trim();
+
+        if (!name || !phone || !shopName) {
+            tg.HapticFeedback.notificationOccurred('error');
+            tg.showAlert("Iltimos, barcha majburiy maydonlarni to'ldiring!");
+            return;
+        }
+
+        // 🔴 Agar filial kiritilmasa — do‘kon nomi bilan to‘ldiramiz
+        if (!filialName) {
+            filialName = shopName;
+        }
+
+        telegram_id = tg.initDataUnsafe?.user?.id
+
+        const data = {
+            telegram_id: telegram_id,
+            full_name: name,
+            phone: phone,
+            shop_name: shopName,
+            filial_name: filialName,
+            latitude: Number(lat.toFixed(6)),
+            longitude: Number(lon.toFixed(6))
+        };
+
+        tg.HapticFeedback.notificationOccurred('success');
+
+        fetch('/webapp/api/save-client/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(async response => {
+            const result = await response.json();
+
+            if (!response.ok) {
+                showErrors(result);
+                return;
+            }
+
+            tg.showAlert("Ma'lumotlar muvaffaqiyatli saqlandi!", () => {
+                tg.close();
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            tg.showAlert("Server bilan bog‘lanib bo‘lmadi");
+        });
+    }
+
+    function showErrors(errors) {
+        const box = document.getElementById('errorLog');
+        box.innerHTML = "";
+        box.classList.remove('hidden');
+
+        let text = "";
+
+        for (const field in errors) {
+            errors[field].forEach(msg => {
+                text += `• ${field}: ${msg}\n`;
+            });
+        }
+
+        box.innerText = text;
+        tg.HapticFeedback.notificationOccurred('error');
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+</body>
+</html>

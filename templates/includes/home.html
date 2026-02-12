@@ -1,0 +1,34 @@
+{% load static %}
+<div id="home-page" class="page active px-4 space-y-6">
+    <header class="flex justify-center items-center py-0 bg-white -mx-4 mb-2 shadow-sm">
+        <img src="{% static 'img/logo.png' %}" alt="Le Vanille"
+             class="h-20 w-full max-w-[280px] object-scale-down">
+    </header>
+
+    <div class="bg-gradient-to-r from-[#a8000b] to-[#7a0008] rounded-[2.5rem] p-6 text-white relative overflow-hidden h-44 flex items-center shadow-lg">
+        <div class="z-10 w-2/3">
+            <h2 class="text-2xl font-black leading-tight italic">Mazzali Lahzalar!</h2>
+            <p class="text-white/80 text-xs mt-2 font-medium">Barcha burgerlar uchun <br>
+                <span class="text-yellow-400 font-bold text-lg">-20% CHEGIRMA</span>
+            </p>
+        </div>
+        <img src="{% static 'img/promo.png' %}" class="absolute -right-4 -bottom-4 w-36 rotate-12 opacity-40"/>
+    </div>
+
+    <section>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-extrabold text-lg text-gray-800">Menyu</h3>
+        </div>
+        <div id="cat-list" class="flex space-x-3 overflow-x-auto no-scrollbar pb-2">
+            <button onclick="filterItems('all', this)" class="category-btn active-category custom-tab">Hammasi</button>
+
+            {% for cat in categories %}
+            <button onclick="filterItems('{{ cat.name|lower }}', this)" class="category-btn custom-tab">
+                {{ cat.name }}
+            </button>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div id="food-grid" class="grid grid-cols-2 gap-4 pb-10"></div>
+</div>

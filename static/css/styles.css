@@ -1,0 +1,119 @@
+:root {
+    --brand-red: #a8000b;
+    --bg-gray: #f8f9fa;
+    --nav-black: #121212;
+}
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-gray);
+    -webkit-tap-highlight-color: transparent;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.page { display: none; animation: slideUp 0.3s ease-out; }
+.page.active { display: block; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+.custom-shadow { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); }
+.active-category {
+    background-color: var(--brand-red) !important;
+    color: white !important;
+}
+
+/* QORA BOTTOM NAV */
+.bottom-nav {
+    background-color: var(--nav-black);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.nav-item {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #666;
+}
+.nav-item.active {
+    color: white;
+    transform: translateY(-4px);
+}
+
+/* Faol tugma ostidagi chiroq effekti */
+.nav-item.active .icon-container {
+    position: relative;
+}
+.nav-item.active .icon-container::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 15px;
+    height: 2px;
+    background: var(--brand-red);
+    box-shadow: 0 0 10px var(--brand-red);
+    border-radius: 10px;
+}
+
+.count-btn {
+    width: 30px; height: 30px;
+    display: flex; items-center; justify-content: center;
+    border-radius: 10px; font-weight: bold;
+}
+
+#cart-badge {
+    transition: transform 0.2s ease-in-out;
+    pointer-events: none; /* Tugma bosilishiga xalaqit bermaydi */
+}
+
+/* 1. Kategoriyalar konteyneri - gorizontal scroll va joylashuv */
+#cat-list {
+    display: flex;
+    gap: 0.75rem; /* space-x-3 ga mos */
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+/* 2. Scrollbar-ni yashirish (toza ko'rinish uchun) */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE va Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* 3. Menyu tugmalarining umumiy dizayni (custom-shadow ishlatilgan) */
+.category-btn {
+    padding: 0.75rem 1.5rem; /* py-3 px-6 */
+    border-radius: 1rem;     /* rounded-2xl */
+    background-color: white;
+    font-weight: 700;        /* font-bold */
+    font-size: 0.75rem;      /* text-xs */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* custom-shadow */
+    white-space: nowrap;     /* tugma ichidagi matnni buzmaslik uchun */
+    color: #6b7280;          /* text-gray-500 */
+    transition: all 0.2s ease;
+}
+
+/* 4. Faol kategoriya (bosilgandagi) rangi */
+.active-category {
+    background-color: var(--brand-red) !important; /* #a8000b */
+    color: white !important;
+}
+
+/* 5. Tugmani bosganda kichrayish effekti (UX uchun) */
+.category-btn:active {
+    transform: scale(0.95);
+}
+
+header {
+    /* Header qismini biroz pastga tushirish va soya berish */
+    border-bottom: 0px solid #f1f1f1;
+}
+
+header img {
+    /* Logotipni biroz filtr yordamida aniqlashtirish (agar xira bo'lsa) */
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+    transition: transform 0.3s ease;
+}
+
+header img:hover {
+    transform: scale(1.05);
+}
