@@ -27,10 +27,9 @@ DB_PORT = env.str("DB_PORT")
 SECRET_KEY = DJ_SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = DJ_DEBUG
-
-ALLOWED_HOSTS = ["*"]
-
+DEBUG = env.bool("DEBUG", default=False)
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["vanill.uz", "www.vanill.uz"])
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED", default=["https://vanill.uz", "https://www.vanill.uz"])
 
 # Application definition
 
@@ -136,8 +135,6 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# settings.py ichida
-CSRF_TRUSTED_ORIGINS = ['https://vanill.uz', 'https://www.vanill.uz']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
