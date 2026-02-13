@@ -12,7 +12,7 @@ env.read_env()
 
 # DJANGO
 DJ_SECRET_KEY = env.str("SECRET_KEY")
-DJ_ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+DJ_ALLOWED_HOSTS = ['"vanill.uz']
 DJ_DEBUG = env.bool("DEBUG")
 
 # DATABASE
