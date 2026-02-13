@@ -29,7 +29,7 @@ SECRET_KEY = DJ_SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = DJ_DEBUG
 
-ALLOWED_HOSTS = DJ_ALLOWED_HOSTS
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
