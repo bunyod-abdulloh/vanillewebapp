@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 # Modellarni import qilish
 from client.models import Client
+from config.env_config import ADMIN_GROUP, BOT_TOKEN
 from product.models import Product
 from .models import Order, OrderItem
 
@@ -28,8 +29,8 @@ def send_telegram_location(chat_id, lat, lon):
 
 def send_telegram_message(message):
     """Adminlar guruhiga matnli xabar yuborish"""
-    token = "7551085381:AAEOIlU2d7VVmdda_vsGQtKDjHSOd5edE_0"
-    group_id = "-1001881989244"
+    token = BOT_TOKEN
+    group_id = ADMIN_GROUP
     url = f"https://api.telegram.org/bot{token}/sendMessage"
 
     payload = {
@@ -51,7 +52,7 @@ def create_order(request):
         try:
             data = json.loads(request.body)
             telegram_id = data.get('telegram_id')
-
+            print(telegram_id)
             # 1. Mijozni topamiz
             try:
                 client = Client.objects.get(telegram_id=telegram_id)
@@ -91,15 +92,15 @@ def create_order(request):
             # 5. Hisobotni tayyorlash
             client_name = getattr(client, 'full_name', 'Noma’lum')
             client_phone = getattr(client, 'phone', 'Kiritilmagan')
-            branch_name = getattr(client, 'filial_name', 'Kiritilmagan')  # Filial nomi
+            branch_name = getattr(client, 'filial_name', 'Kiritilmagan')
 
             report = (
                 f"🛍 <b>YANGI BUYURTMA #{new_order.id}</b>\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"👤 <b>Mijoz:</b> {client_name}\n"
                 f"📞 <b>Tel:</b> {client_phone}\n"
-                f"📍 <b>Filial:</b> {branch_name}\n"  # Xabarga qo'shildi
                 f"🏪 <b>Restoran:</b> {client.shop.name}\n"
+                f"📍 <b>Filial:</b> {branch_name}\n"                
                 f"💬 <b>Izoh:</b> {new_order.comment}\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"{items_text}"
@@ -108,12 +109,9 @@ def create_order(request):
                 f"⏰ <b>Vaqt:</b> {timezone.localtime(new_order.created_at).strftime('%H:%M | %d.%m.%Y')}"
             )
 
-            # 6. Telegramga yuborish
-            group_id = "-1001881989244"
-
-            # 7. Lokatsiyani yuborish (Client jadvalidan olingan)
+            # 6. Lokatsiyani yuborish (Client jadvalidan olingan)
             if client.latitude and client.longitude:
-                send_telegram_location(group_id, client.latitude, client.longitude)
+                send_telegram_location(ADMIN_GROUP, client.latitude, client.longitude)
 
             send_telegram_message(report)
 

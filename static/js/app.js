@@ -184,21 +184,22 @@ function changeQty(id, delta) {
 }
 
 async function checkout() {
+    const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+
+    // Agar foydalanuvchi IDsi bo'lmasa (brauzerda ochilgan bo'lsa)
+    if (!user || !user.id) {
+        alert("Xatolik: Iltimos, bot orqali kiring!");
+        return;
+    }
+
     const ids = Object.keys(cart);
     if (ids.length === 0) return;
 
-    // Telegram foydalanuvchi ma'lumotlari
-    const user = tg.initDataUnsafe?.user;
-
-    // Savat ma'lumotlarini massiv ko'rinishiga keltiramiz
     const orderData = {
-        telegram_id: user?.id || 0,
+        telegram_id: user.id,
         items: ids.map(id => {
             const product = products.find(p => p.id == id);
-            return {
-                product_id: product.id,
-                quantity: cart[id]
-            };
+            return { product_id: product?.id, quantity: cart[id] };
         }),
         total_price: ids.reduce((sum, id) => {
             const p = products.find(prod => prod.id == id);
@@ -206,7 +207,7 @@ async function checkout() {
         }, 0)
     };
 
-    // Tugmani yuklanish holatiga o'tkazamiz
+    // Tugmani yuklanish holati
     const btn = event.target;
     const originalText = btn.innerText;
     btn.disabled = true;
@@ -217,23 +218,22 @@ async function checkout() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken') // Django CSRF xavfsizligi uchun
+                'X-CSRFToken': getCookie('csrftoken')
             },
             body: JSON.stringify(orderData)
         });
 
         if (response.ok) {
-            tg.showAlert("Buyurtmangiz qabul qilindi! Tez orada bog'lanamiz.");
+            tg.showAlert("Buyurtmangiz qabul qilindi!");
             cart = {};
             localStorage.removeItem('cart');
             updateBadge();
             showPage('home');
         } else {
-            throw new Error('Xatolik yuz berdi');
+            throw new Error();
         }
     } catch (error) {
-        tg.showAlert("Xatolik: Buyurtmani yuborib bo'lmadi.");
-        console.error(error);
+        alert("Xatolik: Buyurtmani yuborib bo'lmadi.");
     } finally {
         btn.disabled = false;
         btn.innerText = originalText;
