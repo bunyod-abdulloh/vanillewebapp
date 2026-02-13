@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from config.env_config import DJ_SECRET_KEY, DJ_DEBUG, DJ_ALLOWED_HOSTS, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, \
-    DB_PORT, CSRF_TRUSTED
+    DB_PORT
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -119,7 +119,8 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED
+# settings.py ichida
+CSRF_TRUSTED_ORIGINS = ['https://vanill.uz', 'https://www.vanill.uz']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
