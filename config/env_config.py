@@ -12,7 +12,6 @@ ADMIN_GROUP = env.str("ADMIN_GROUP")
 DJ_SECRET_KEY = env.str("SECRET_KEY")
 DJ_ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 DJ_DEBUG = env.bool("DEBUG")
-CSRF_TRUSTED = env.list("CSRF_TRUSTED")
 
 # DATABASE
 DB_NAME = env.str("DB_NAME")
