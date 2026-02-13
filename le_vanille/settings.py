@@ -7,6 +7,7 @@ from config.env_config import DJ_SECRET_KEY, DJ_DEBUG, DJ_ALLOWED_HOSTS, DB_NAME
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = DJ_SECRET_KEY
