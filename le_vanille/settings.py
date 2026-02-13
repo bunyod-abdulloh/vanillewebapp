@@ -126,6 +126,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 # Agar static papkangiz loyiha ildizida (root) bo'lsa:
 STATICFILES_DIRS = [
     BASE_DIR / "static",
