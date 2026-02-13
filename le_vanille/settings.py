@@ -2,14 +2,11 @@
 import os
 from pathlib import Path
 
-from config.env_config import DJ_SECRET_KEY, DJ_DEBUG, DJ_ALLOWED_HOSTS
+from config.env_config import DJ_SECRET_KEY, DJ_DEBUG, DJ_ALLOWED_HOSTS, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, \
+    DB_PORT, CSRF_TRUSTED
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = DJ_SECRET_KEY
@@ -70,11 +67,11 @@ WSGI_APPLICATION = 'le_vanille.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "le_vanilldb",
-        "USER": "postgres",
-        "PASSWORD": "postgres",  # o‘zingizniki
-        "HOST": "localhost",
-        "PORT": "5432",
+        "NAME": DB_NAME,
+        "USER": DB_USER,
+        "PASSWORD": DB_PASSWORD,
+        "HOST": DB_HOST,
+        "PORT": DB_PORT,
     }
 }
 
@@ -122,9 +119,7 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://*.ngrok-free.app",
-]
+CSRF_TRUSTED_ORIGINS = CSRF_TRUSTED
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
