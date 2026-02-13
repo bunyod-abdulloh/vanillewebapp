@@ -6,6 +6,7 @@ __pycache__/
 
 loader.py
 config/.env
+media/
 
 # C extensions
 *.so
