@@ -2,12 +2,26 @@
 import os
 from pathlib import Path
 
-from config.env_config import DJ_SECRET_KEY, DJ_DEBUG, DJ_ALLOWED_HOSTS, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, \
-    DB_PORT
+from environs import Env
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-env.read_env(os.path.join(BASE_DIR, ".env"))
+
+env = Env()
+env.read_env()
+
+# DJANGO
+DJ_SECRET_KEY = env.str("SECRET_KEY")
+DJ_ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+DJ_DEBUG = env.bool("DEBUG")
+
+# DATABASE
+DB_NAME = env.str("DB_NAME")
+DB_USER = env.str("DB_USER")
+DB_PASSWORD = env.str("DB_PASSWORD")
+DB_HOST = env.str("DB_HOST")
+DB_PORT = env.str("DB_PORT")
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = DJ_SECRET_KEY
