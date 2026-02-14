@@ -14,7 +14,7 @@ from .models import Order, OrderItem
 
 def send_telegram_location(chat_id, lat, lon):
     """Guruhga mijoz lokatsiyasini xarita ko'rinishida yuborish"""
-    token = "7551085381:AAEOIlU2d7VVmdda_vsGQtKDjHSOd5edE_0"
+    token = BOT_TOKEN
     url = f"https://api.telegram.org/bot{token}/sendLocation"
     payload = {
         "chat_id": chat_id,
@@ -52,7 +52,7 @@ def create_order(request):
         try:
             data = json.loads(request.body)
             telegram_id = data.get('telegram_id')
-            print(telegram_id)
+
             # 1. Mijozni topamiz
             try:
                 client = Client.objects.get(telegram_id=telegram_id)
