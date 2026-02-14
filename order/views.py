@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 # Modellarni import qilish
 from client.models import Client
-from config.env_config import ADMIN_GROUP, BOT_TOKEN
+from config.env_config import ADMIN_GROUP, BOT_TOKEN, ADMINS
 from product.models import Product
 from .models import Order, OrderItem
 
@@ -27,14 +27,13 @@ def send_telegram_location(chat_id, lat, lon):
         print(f"Lokatsiya yuborishda xato: {e}")
 
 
-def send_telegram_message(message):
+def send_telegram_message(message, chat_id):
     """Adminlar guruhiga matnli xabar yuborish"""
     token = BOT_TOKEN
-    group_id = ADMIN_GROUP
     url = f"https://api.telegram.org/bot{token}/sendMessage"
 
     payload = {
-        "chat_id": group_id,
+        "chat_id": chat_id,
         "text": message,
         "parse_mode": "HTML"
     }
@@ -112,12 +111,13 @@ def create_order(request):
             if client.latitude and client.longitude:
                 send_telegram_location(ADMIN_GROUP, client.latitude, client.longitude)
 
-            send_telegram_message(report)
+            send_telegram_message(report, ADMIN_GROUP)
+            send_telegram_message(report, ADMINS[0])
 
             return JsonResponse({'status': 'success', 'order_id': new_order.id})
 
         except Exception as e:
-            print(f"Xatolik: {e}")
+            send_telegram_message(f"{e}", ADMINS[0])
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
     return JsonResponse({'status': 'invalid method'}, status=405)
