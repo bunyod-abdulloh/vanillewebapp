@@ -246,7 +246,7 @@ async function checkout(event) {
             throw new Error();
         }
     } catch (error) {
-        alert("Xatolik: Buyurtmani yuborib bo'lmadi.");
+        alert("Xatolik:", error);
         console.error("Checkout xatolik:", error);
     } finally {
         btn.disabled = false;
