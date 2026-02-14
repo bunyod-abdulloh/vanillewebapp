@@ -10,6 +10,12 @@ function initializeApp() {
     console.log("Dastur ishga tushmoqda...");
     const dataElement = document.getElementById('products-data');
 
+    // Tekshirish alerti
+    if (tg?.initDataUnsafe?.user) {
+        alert("Bot orqali ochildi: " + tg.initDataUnsafe.user.first_name);
+    } else {
+        alert("Bot orqali ochilmagan yoki user ma'lumot yo'q");
+    }
 
     if (dataElement) {
         try {
