@@ -4,28 +4,32 @@ tg.expand();
 
 let products = [];
 let cart = JSON.parse(localStorage.getItem('cart')) || {};
-
 let retryCount = 0;
 
-function initializeApp() {
-    let telegramId = localStorage.getItem('telegram_id');
-
-    if (!telegramId) {
-        // Telegram WebApp initData dan user_id olish
-        if (tg?.initDataUnsafe?.user?.id) {
-            telegramId = tg.initDataUnsafe.user.id;
-            localStorage.setItem('telegram_id', telegramId);
-        } else {
-            alert(
-                "Shaxsiy ma'lumotlaringiz yetarli emas.\n" +
-                "Iltimos botga /start buyrug'ini kiritib qayta ishga tushiring!"
-            );
-            tg.close();
-            return;
-        }
+// ========================
+// Telegram User ID Setup
+// ========================
+function setupTelegramUser() {
+    const user = tg?.initDataUnsafe?.user;
+    if (user?.id) {
+        localStorage.setItem('telegram_id', user.id);
+        const userEl = document.getElementById('user-name');
+        if (userEl) userEl.innerText = user.first_name || "";
+    } else if (!localStorage.getItem('telegram_id')) {
+        alert(
+            "Shaxsiy ma'lumotlaringiz yetarli emas.\n" +
+            "Iltimos botga /start buyrug'ini kiritib qayta ishga tushiring!"
+        );
+        tg.close();
     }
+}
 
-    // Mahsulotlar ma’lumotini olish
+// ========================
+// Initialize App
+// ========================
+function initializeApp() {
+    setupTelegramUser();
+
     const dataElement = document.getElementById('products-data');
     if (!dataElement) {
         if (retryCount < 10) {
@@ -45,22 +49,18 @@ function initializeApp() {
     } catch (e) {
         console.error("JSON o‘qishda xato:", e);
     }
-
-    // User ismini ko'rsatish
-    if (tg.initDataUnsafe?.user?.first_name) {
-        const userEl = document.getElementById('user-name');
-        if (userEl) userEl.innerText = tg.initDataUnsafe.user.first_name;
-    }
 }
 
+// ========================
+// Render Home / Grid
+// ========================
 function renderHome(items) {
     const grid = document.getElementById('food-grid');
     if (!grid) return;
 
-    // XATONI OLDINI OLISH: items har doim massiv bo'lishini ta'minlaymiz
     const safeItems = Array.isArray(items) ? items : [];
 
-    if (safeItems.length === 0) {
+    if (!safeItems.length) {
         grid.innerHTML = `
             <div class="col-span-2 text-center py-20 text-gray-400 font-medium italic">
                 Hozircha mahsulotlar mavjud emas...
@@ -68,7 +68,6 @@ function renderHome(items) {
         return;
     }
 
-    // Endi .map() aniq ishlaydi
     grid.innerHTML = safeItems.map(p => `
         <div class="bg-white rounded-[2.2rem] p-3 shadow-sm border border-gray-50 flex flex-col">
             <div class="relative overflow-hidden rounded-[1.8rem] mb-3 h-32 bg-gray-50">
@@ -90,19 +89,14 @@ function renderHome(items) {
     console.log("Render yakunlandi, grid to'ldirildi.");
 }
 
-// Qolgan funksiyalar o'zgarishsiz qoladi...
-function filterItems(cat, btn) {
-    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active-category'));
-    if (btn) btn.classList.add('active-category');
-    const filtered = (cat === 'all') ? products : products.filter(p => p.cat === cat);
-    renderHome(filtered);
-}
-
+// ========================
+// Cart Functions
+// ========================
 function addToCart(id) {
     cart[id] = (cart[id] || 0) + 1;
     localStorage.setItem('cart', JSON.stringify(cart));
     updateBadge();
-    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    tg.HapticFeedback?.notificationOccurred('success');
 }
 
 function updateBadge() {
@@ -113,50 +107,26 @@ function updateBadge() {
     }
 }
 
-// 1. showPage funksiyasini yangilaymiz
-function showPage(pageId, btn) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const target = document.getElementById(pageId + '-page');
-    if (target) target.classList.add('active');
-
-    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-
-    // AGAR savat tugmasi bosilsa, savatni chizishni boshlaymiz
-    if (pageId === 'cart') {
-        renderCart();
-    }
-
-    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-}
-
-// 2. Savatni chizish funksiyasi
 function renderCart() {
     const container = document.getElementById('cart-items');
     const summary = document.getElementById('cart-summary');
-
     if (!container) return;
 
     const ids = Object.keys(cart);
-
-    // Savat bo'sh bo'lsa
-    if (ids.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-20 text-gray-400 italic font-medium">
-                Savat hozircha bo'sh...
-            </div>`;
-        if (summary) summary.classList.add('hidden');
+    if (!ids.length) {
+        container.innerHTML = `<div class="text-center py-20 text-gray-400 italic font-medium">
+            Savat hozircha bo'sh...
+        </div>`;
+        summary?.classList.add('hidden');
         return;
     }
 
-    // Savatda narsa bo'lsa, xulosani ko'rsatish
-    if (summary) summary.classList.remove('hidden');
+    summary?.classList.remove('hidden');
     let total = 0;
 
     container.innerHTML = ids.map(id => {
         const item = products.find(p => p.id == id);
         if (!item) return '';
-
         const lineTotal = item.price * cart[id];
         total += lineTotal;
 
@@ -175,46 +145,38 @@ function renderCart() {
             </div>`;
     }).join('');
 
-    // Summalarni yangilash
     const subtotalEl = document.getElementById('subtotal-val');
     const totalEl = document.getElementById('total-val');
-
     if (subtotalEl) subtotalEl.innerText = total.toLocaleString() + " so'm";
     if (totalEl) totalEl.innerText = total.toLocaleString() + " so'm";
 }
 
-// 3. Savatda miqdorni o'zgartirish funksiyasi
 function changeQty(id, delta) {
     if (!cart[id]) return;
-
     cart[id] += delta;
-
-    if (cart[id] <= 0) {
-        delete cart[id];
-    }
-
+    if (cart[id] <= 0) delete cart[id];
     localStorage.setItem('cart', JSON.stringify(cart));
-    renderCart(); // Ekranni qayta chizish
-    updateBadge(); // Ikonkadagi raqamni yangilash
+    renderCart();
+    updateBadge();
 }
 
+// ========================
+// Checkout / Send Order
+// ========================
 async function checkout(event) {
-    // Telegram WebApp initData dan user_id olish
-    const telegramId = tg?.initDataUnsafe?.user?.id;
-
-    if (!tg || !telegramId) {
+    const telegramId = localStorage.getItem('telegram_id');
+    if (!telegramId) {
         alert(
             "Xatolik: Shaxsiy ma'lumotlaringiz topilmadi.\n" +
             "Iltimos botga /start buyrug'ini kiritib qayta ishga tushiring"
         );
-        tg?.close();
+        tg.close();
         return;
     }
 
     const ids = Object.keys(cart);
-    if (ids.length === 0) return;
+    if (!ids.length) return;
 
-    // Buyurtma ma'lumotlarini tayyorlash
     const orderData = {
         telegram_id: telegramId,
         items: ids.map(id => {
@@ -227,7 +189,6 @@ async function checkout(event) {
         }, 0)
     };
 
-    // Tugmani yuklanish holati
     const btn = event.target;
     const originalText = btn.innerText;
     btn.disabled = true;
@@ -261,7 +222,24 @@ async function checkout(event) {
     }
 }
 
-// CSRF tokenni olish uchun yordamchi funksiya
+// ========================
+// Page Navigation
+// ========================
+function showPage(pageId, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById(pageId + '-page');
+    if (target) target.classList.add('active');
+
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    if (pageId === 'cart') renderCart();
+    tg.HapticFeedback?.impactOccurred('medium');
+}
+
+// ========================
+// Helpers
+// ========================
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -277,5 +255,7 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// Dasturni ishga tushirish
+// ========================
+// Start App
+// ========================
 document.addEventListener('DOMContentLoaded', initializeApp);
