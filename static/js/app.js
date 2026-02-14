@@ -190,7 +190,7 @@ async function checkout(event) {
     const user = tg?.initDataUnsafe?.user;
 
     if (!tg || !user || !user.id) {
-        alert("Xatolik: Iltimos, bot orqali kiring!");
+        alert("Xatolik: Iltimos, faqat bot orqali kiring!");
         return;
     }
 
