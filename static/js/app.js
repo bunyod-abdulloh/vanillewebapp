@@ -1,5 +1,7 @@
 const tg = window.Telegram.WebApp;
+tg.ready();
 tg.expand();
+
 
 let products = [];
 let cart = JSON.parse(localStorage.getItem('cart')) || {};
