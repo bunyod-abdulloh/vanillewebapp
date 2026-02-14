@@ -1,9 +1,11 @@
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
+
 from product.models import Product, Category
 
+
 @ensure_csrf_cookie
-def home_page(request, user_id):
+def home_page(request):
     # Faqat mavjud mahsulotlarni va tegishli kategoriyalarni yuklash
     active_products = Product.objects.filter(is_available=True).select_related('category')
     categories = Category.objects.all()
@@ -23,8 +25,7 @@ def home_page(request, user_id):
 
     context = {
         'categories': categories,
-        'products_list': products_data,
-        'user_id': user_id  # Backenddan user_id ni template ga yuboramiz
+        'products_list': products_data
     }
     return render(request, 'index.html', context)
 

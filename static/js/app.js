@@ -11,18 +11,9 @@ function initializeApp() {
     let telegramId = localStorage.getItem('telegram_id');
 
     if (!telegramId) {
-
-        // 1️⃣ ENG ISHONCHLI MANBA — BACKEND
-        if (window.BACKEND_USER_ID && /^\d+$/.test(window.BACKEND_USER_ID)) {
-            telegramId = window.BACKEND_USER_ID;
-
-        // 2️⃣ TELEGRAM WEBAPP
-        } else if (tg?.initDataUnsafe?.user?.id) {
+        // Telegram WebApp initData dan user_id olish
+        if (tg?.initDataUnsafe?.user?.id) {
             telegramId = tg.initDataUnsafe.user.id;
-        }
-
-        // 3️⃣ SAQLASH
-        if (telegramId) {
             localStorage.setItem('telegram_id', telegramId);
         } else {
             alert(
@@ -34,8 +25,8 @@ function initializeApp() {
         }
     }
 
+    // Mahsulotlar ma’lumotini olish
     const dataElement = document.getElementById('products-data');
-
     if (!dataElement) {
         if (retryCount < 10) {
             retryCount++;
@@ -55,12 +46,12 @@ function initializeApp() {
         console.error("JSON o‘qishda xato:", e);
     }
 
-    if (tg.initDataUnsafe?.user) {
+    // User ismini ko'rsatish
+    if (tg.initDataUnsafe?.user?.first_name) {
         const userEl = document.getElementById('user-name');
         if (userEl) userEl.innerText = tg.initDataUnsafe.user.first_name;
     }
 }
-
 
 function renderHome(items) {
     const grid = document.getElementById('food-grid');
@@ -208,12 +199,14 @@ function changeQty(id, delta) {
 }
 
 async function checkout(event) {
-
-    // 1️⃣ localStorage'dan user_id olish
-    const telegramId = localStorage.getItem('telegram_id');
+    // Telegram WebApp initData dan user_id olish
+    const telegramId = tg?.initDataUnsafe?.user?.id;
 
     if (!tg || !telegramId) {
-        alert("Xatolik: Shaxsiy ma'lumotlaringiz topilmadi, iltimos botga /start buyrug'ini kiritib qayta ishga tushiring");
+        alert(
+            "Xatolik: Shaxsiy ma'lumotlaringiz topilmadi.\n" +
+            "Iltimos botga /start buyrug'ini kiritib qayta ishga tushiring"
+        );
         tg?.close();
         return;
     }
@@ -221,7 +214,7 @@ async function checkout(event) {
     const ids = Object.keys(cart);
     if (ids.length === 0) return;
 
-    // 2️⃣ Buyurtma ma'lumotlarini tayyorlash
+    // Buyurtma ma'lumotlarini tayyorlash
     const orderData = {
         telegram_id: telegramId,
         items: ids.map(id => {
@@ -234,7 +227,7 @@ async function checkout(event) {
         }, 0)
     };
 
-    // 3️⃣ Tugmani yuklanish holati
+    // Tugmani yuklanish holati
     const btn = event.target;
     const originalText = btn.innerText;
     btn.disabled = true;
@@ -261,11 +254,13 @@ async function checkout(event) {
         }
     } catch (error) {
         alert("Xatolik: Buyurtmani yuborib bo'lmadi.");
+        console.error("Checkout xatolik:", error);
     } finally {
         btn.disabled = false;
         btn.innerText = originalText;
     }
 }
+
 // CSRF tokenni olish uchun yordamchi funksiya
 function getCookie(name) {
     let cookieValue = null;
