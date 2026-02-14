@@ -2,37 +2,47 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-
 let products = [];
 let cart = JSON.parse(localStorage.getItem('cart')) || {};
 
 function initializeApp() {
     console.log("Dastur ishga tushmoqda...");
-    const dataElement = document.getElementById('products-data');
 
-    // Tekshirish alerti
-    if (tg?.initDataUnsafe?.user) {
-        alert("Bot orqali ochildi: " + tg.initDataUnsafe.user.first_name);
-    } else {
-        alert("Bot orqali ochilmagan yoki user ma'lumot yo'q");
+    // 1️⃣ User ID tekshirish va saqlash
+    let telegramId = localStorage.getItem('telegram_id');
+
+    if (!telegramId) {
+        // URL'dan olish: https://www.vanill.uz/product/{user_id}
+        const pathParts = window.location.pathname.split('/');
+        const urlId = pathParts[pathParts.length - 1];
+
+        if (tg?.initDataUnsafe?.user?.id) {
+            telegramId = tg.initDataUnsafe.user.id;
+        } else if (/^\d+$/.test(urlId)) {
+            telegramId = urlId;
+        }
+
+        if (telegramId) {
+            localStorage.setItem('telegram_id', telegramId);
+        } else {
+            alert("Shaxsiy ma'lumotlaringiz topilmadi, iltimos botga /start buyrug'ini kiritib qayta ishga tushiring");
+            tg.close(); // Web App oynasini yopish
+            return; // Keyingi kodlarni ishlatmaymiz
+        }
     }
+    // 2️⃣ Mahsulotlarni o'qish
+    const dataElement = document.getElementById('products-data');
 
     if (dataElement) {
         try {
-            // Ma'lumotni o'qiymiz
             const rawData = JSON.parse(dataElement.textContent);
-
-            // AGAR rawData massiv bo'lmasa, uni massivga aylantiramiz yoki o'qiymiz
-            products = Array.isArray(rawData) ? rawData : [];
-
-            console.log("Tozalangan mahsulotlar massivi:", products);
+            products = Array.isArray(rawData) ? rawData : [];            
 
             if (products.length > 0) {
                 renderHome(products);
                 updateBadge();
-            } else {
-                console.warn("Mahsulotlar massivi bo'sh!");
-                renderHome([]); // "Mavjud emas" yozuvini chiqarish uchun
+            } else {                
+                renderHome([]);
             }
         } catch (e) {
             console.error("JSON o'qishda xato:", e);
@@ -41,6 +51,7 @@ function initializeApp() {
         setTimeout(initializeApp, 100);
     }
 
+    // User nomini ko'rsatish (agar bor bo'lsa)
     if (tg.initDataUnsafe?.user) {
         const userEl = document.getElementById('user-name');
         if (userEl) userEl.innerText = tg.initDataUnsafe.user.first_name;
@@ -194,18 +205,22 @@ function changeQty(id, delta) {
 
 async function checkout(event) {
     const tg = window.Telegram?.WebApp;
-    const user = tg?.initDataUnsafe?.user;
 
-    if (!tg || !user || !user.id) {
-        alert("Xatolik: Iltimos, faqat bot orqali kiring!");
+    // 1️⃣ localStorage'dan user_id olish
+    const telegramId = localStorage.getItem('telegram_id');
+
+    if (!tg || !telegramId) {
+        alert("Xatolik: Shaxsiy ma'lumotlaringiz topilmadi, iltimos botga /start buyrug'ini kiritib qayta ishga tushiring");
+        tg?.close();
         return;
     }
 
     const ids = Object.keys(cart);
     if (ids.length === 0) return;
 
+    // 2️⃣ Buyurtma ma'lumotlarini tayyorlash
     const orderData = {
-        telegram_id: user.id,
+        telegram_id: telegramId,
         items: ids.map(id => {
             const product = products.find(p => p.id == id);
             return { product_id: product?.id, quantity: cart[id] };
@@ -216,7 +231,7 @@ async function checkout(event) {
         }, 0)
     };
 
-    // Tugmani yuklanish holati
+    // 3️⃣ Tugmani yuklanish holati
     const btn = event.target;
     const originalText = btn.innerText;
     btn.disabled = true;
@@ -248,7 +263,6 @@ async function checkout(event) {
         btn.innerText = originalText;
     }
 }
-
 // CSRF tokenni olish uchun yordamchi funksiya
 function getCookie(name) {
     let cookieValue = null;
