@@ -112,12 +112,10 @@ def create_order(request):
                 send_telegram_location(ADMIN_GROUP, client.latitude, client.longitude)
 
             send_telegram_message(report, ADMIN_GROUP)
-            send_telegram_message(report, ADMINS[0])
 
             return JsonResponse({'status': 'success', 'order_id': new_order.id})
 
         except Exception as e:
-            send_telegram_message(f"{e}", ADMINS[0])
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
     return JsonResponse({'status': 'invalid method'}, status=405)

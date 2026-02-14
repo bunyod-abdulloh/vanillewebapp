@@ -51,6 +51,28 @@ function initializeApp() {
     }
 }
 
+let currentCategory = 'all'; // Dastlabki holat
+
+// Yangi funksiya: filterItems
+function filterItems(category, btn) {
+    // Filtrlangan mahsulotlar
+    const filtered = category === 'all'
+        ? products
+        : products.filter(p => p.category?.toLowerCase() === category.toLowerCase());
+
+    // Sahifani yangilash
+    renderHome(filtered);
+
+    // Active class ni o'zgartirish
+    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active-category'));
+    btn.classList.add('active-category');
+
+    // Haptic feedback (ixtiyoriy)
+    tg.HapticFeedback?.impactOccurred('light');
+
+    console.log(`Filtrlandi: ${category}, natijalar: ${filtered.length}`); // Debug uchun
+}
+
 // ========================
 // Render Home / Grid
 // ========================
