@@ -5,58 +5,62 @@ tg.expand();
 let products = [];
 let cart = JSON.parse(localStorage.getItem('cart')) || {};
 
-function initializeApp() {
-    console.log("Dastur ishga tushmoqda...");
+let retryCount = 0;
 
-    // 1️⃣ User ID tekshirish va saqlash
+function initializeApp() {
     let telegramId = localStorage.getItem('telegram_id');
 
     if (!telegramId) {
-        // URL'dan olish: https://www.vanill.uz/product/{user_id}
-        const pathParts = window.location.pathname.split('/');
-        const urlId = pathParts[pathParts.length - 1];
 
-        if (tg?.initDataUnsafe?.user?.id) {
+        // 1️⃣ ENG ISHONCHLI MANBA — BACKEND
+        if (window.BACKEND_USER_ID && /^\d+$/.test(window.BACKEND_USER_ID)) {
+            telegramId = window.BACKEND_USER_ID;
+
+        // 2️⃣ TELEGRAM WEBAPP
+        } else if (tg?.initDataUnsafe?.user?.id) {
             telegramId = tg.initDataUnsafe.user.id;
-        } else if (/^\d+$/.test(urlId)) {
-            telegramId = urlId;
         }
 
+        // 3️⃣ SAQLASH
         if (telegramId) {
             localStorage.setItem('telegram_id', telegramId);
         } else {
-            alert("Shaxsiy ma'lumotlaringiz topilmadi, iltimos botga /start buyrug'ini kiritib qayta ishga tushiring");
-            tg.close(); // Web App oynasini yopish
-            return; // Keyingi kodlarni ishlatmaymiz
+            alert(
+                "Shaxsiy ma'lumotlaringiz yetarli emas.\n" +
+                "Iltimos botga /start buyrug'ini kiritib qayta ishga tushiring!"
+            );
+            tg.close();
+            return;
         }
     }
-    // 2️⃣ Mahsulotlarni o'qish
+
     const dataElement = document.getElementById('products-data');
 
-    if (dataElement) {
-        try {
-            const rawData = JSON.parse(dataElement.textContent);
-            products = Array.isArray(rawData) ? rawData : [];            
-
-            if (products.length > 0) {
-                renderHome(products);
-                updateBadge();
-            } else {                
-                renderHome([]);
-            }
-        } catch (e) {
-            console.error("JSON o'qishda xato:", e);
+    if (!dataElement) {
+        if (retryCount < 10) {
+            retryCount++;
+            setTimeout(initializeApp, 100);
+        } else {
+            console.error("products-data topilmadi");
         }
-    } else {
-        setTimeout(initializeApp, 100);
+        return;
     }
 
-    // User nomini ko'rsatish (agar bor bo'lsa)
+    try {
+        const rawData = JSON.parse(dataElement.textContent);
+        products = Array.isArray(rawData) ? rawData : [];
+        renderHome(products);
+        updateBadge();
+    } catch (e) {
+        console.error("JSON o‘qishda xato:", e);
+    }
+
     if (tg.initDataUnsafe?.user) {
         const userEl = document.getElementById('user-name');
         if (userEl) userEl.innerText = tg.initDataUnsafe.user.first_name;
     }
 }
+
 
 function renderHome(items) {
     const grid = document.getElementById('food-grid');
@@ -204,7 +208,6 @@ function changeQty(id, delta) {
 }
 
 async function checkout(event) {
-    const tg = window.Telegram?.WebApp;
 
     // 1️⃣ localStorage'dan user_id olish
     const telegramId = localStorage.getItem('telegram_id');
