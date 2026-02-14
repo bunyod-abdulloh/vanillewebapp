@@ -58,7 +58,7 @@ function filterItems(category, btn) {
     // Filtrlangan mahsulotlar
     const filtered = category === 'all'
         ? products
-        : products.filter(p => p.category?.toLowerCase() === category.toLowerCase());
+        : products.filter(p => p.cat?.toLowerCase() === category.toLowerCase());
 
     // Sahifani yangilash
     renderHome(filtered);
