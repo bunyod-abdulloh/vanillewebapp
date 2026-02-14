@@ -185,11 +185,11 @@ function changeQty(id, delta) {
     updateBadge(); // Ikonkadagi raqamni yangilash
 }
 
-async function checkout() {
-    const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+async function checkout(event) {
+    const tg = window.Telegram?.WebApp;
+    const user = tg?.initDataUnsafe?.user;
 
-    // Agar foydalanuvchi IDsi bo'lmasa (brauzerda ochilgan bo'lsa)
-    if (!user || !user.id) {
+    if (!tg || !user || !user.id) {
         alert("Xatolik: Iltimos, bot orqali kiring!");
         return;
     }
