@@ -236,6 +236,9 @@ async function checkout(event) {
             body: JSON.stringify(orderData)
         });
 
+        // Javobni JSON formatida o'qiymiz
+        const result = await response.json();
+
         if (response.ok) {
             tg.showAlert("Buyurtmangiz qabul qilindi!");
             cart = {};
@@ -243,10 +246,12 @@ async function checkout(event) {
             updateBadge();
             showPage('home');
         } else {
-            throw new Error();
+            // Agar xato bo'lsa (404 kabi), Djangodan kelgan xabarni Error'ga beramiz
+            throw new Error(result.message || "Noma'lum xatolik");
         }
     } catch (error) {
-        alert("Xatolik:", error);
+        // Endi bu yerda "Mijoz topilmadi" yoki boshqa xabar chiqadi
+        tg.showAlert(error.message);
         console.error("Checkout xatolik:", error);
     } finally {
         btn.disabled = false;
