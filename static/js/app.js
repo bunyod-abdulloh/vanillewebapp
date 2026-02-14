@@ -159,10 +159,20 @@ function renderCart() {
                     <h4 class="font-bold text-xs text-gray-800">${item.name}</h4>
                     <p class="text-[#a8000b] font-black text-xs mt-1">${Number(item.price).toLocaleString()} s.</p>
                 </div>
-                <div class="flex items-center space-x-2 bg-gray-50 rounded-xl p-1.5">
-                    <button onclick="changeQty(${id}, -1)" class="w-6 h-6 bg-white rounded-lg shadow-sm flex items-center justify-center font-bold text-gray-500">-</button>
-                    <span class="font-bold text-xs w-4 text-center">${cart[id]}</span>
-                    <button onclick="changeQty(${id}, 1)" class="w-6 h-6 bg-[#a8000b] text-white rounded-lg flex items-center justify-center font-bold text-white">+</button>
+                <div class="flex items-center bg-gray-50 rounded-xl p-1 w-fit">
+                    <button onclick="changeQty(${id}, -1)"
+                            class="count-btn minus-btn bg-white shadow-sm text-gray-400 active:scale-90">
+                        <span>−</span>
+                    </button>
+
+                    <span class="font-bold text-base w-6 text-center select-none text-gray-800 inline-block">
+                        ${cart[id]}
+                    </span>
+
+                    <button onclick="changeQty(${id}, 1)"
+                            class="count-btn plus-btn bg-[#a8000b] text-white active:scale-90">
+                        <span>+</span>
+                    </button>
                 </div>
             </div>`;
     }).join('');

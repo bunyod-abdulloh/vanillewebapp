@@ -51,12 +51,6 @@ body {
     border-radius: 10px;
 }
 
-.count-btn {
-    width: 30px; height: 30px;
-    display: flex; items-center; justify-content: center;
-    border-radius: 10px; font-weight: bold;
-}
-
 #cart-badge {
     transition: transform 0.2s ease-in-out;
     pointer-events: none; /* Tugma bosilishiga xalaqit bermaydi */
@@ -116,4 +110,30 @@ header img {
 
 header img:hover {
     transform: scale(1.05);
+}
+
+/* Umumiy tugma stili */
+
+.count-btn {
+    width: 30px !important;
+    height: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 10px;
+    font-weight: bold;
+    padding: 0 !important;
+    font-size: 20px !important; /* Shrift o'lchamini mahkamlaymiz */
+    line-height: 0 !important;
+}
+
+/* Minus uchun vizual markazlash */
+.count-btn.minus-btn span {
+    transform: translateY(-2px); /* Minus odatda pastroq ko'rinadi */
+}
+
+/* Plus uchun vizual markazlash */
+
+.count-btn.plus-btn span {
+    transform: translateY(-2px); /* Plusni o'z holida qoldiramiz yoki -1px qiling */
 }
