@@ -101,7 +101,6 @@ def create_order(request):
                 f"📞 <b>Tel:</b> {client_phone}\n"
                 f"🏪 <b>Restoran:</b> {client.shop.name}\n"
                 f"📍 <b>Filial:</b> {branch_name}\n"                
-                f"💬 <b>Izoh:</b> {new_order.comment}\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
                 f"{items_text}"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
