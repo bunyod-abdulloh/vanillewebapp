@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 # Modellarni import qilish
 from client.models import Client
-from config.env_config import ADMIN_GROUP, BOT_TOKEN, ADMINS
+from config.env_config import ADMIN_GROUP, BOT_TOKEN
 from product.models import Product
 from .models import Order, OrderItem
 
@@ -56,7 +56,10 @@ def create_order(request):
             try:
                 client = Client.objects.get(telegram_id=telegram_id)
             except Client.DoesNotExist:
-                return JsonResponse({'status': 'error', 'message': 'Mijoz topilmadi'}, status=404)
+                return JsonResponse({'status': 'error',
+                                     'message': 'Mijozlarimiz orasida topilmadingiz! Iltimos, '
+                                                'adminga murojaat qiling!'},
+                                    status=404)
 
             # 2. Order yaratish
             new_order = Order.objects.create(
