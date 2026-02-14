@@ -24,9 +24,6 @@
 </main>
 
 {% include 'includes/navigation.html' %}
-<script>
-    window.BACKEND_USER_ID = "{{ user_id|default:'' }}";
-</script>
 
 <script src="{% static 'js/app.js' %}?v=1.0.7"></script>
 {% block extra_js %}{% endblock %}
