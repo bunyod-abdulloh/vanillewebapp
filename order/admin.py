@@ -27,19 +27,32 @@ def format_currency(amount):
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
+    verbose_name = ""
+    verbose_name_plural = "Buyurtma tarkibi"
     autocomplete_fields = ("product",)
     fields = ("product", "quantity", "formatted_price", "formatted_summary")
     readonly_fields = ("formatted_price", "formatted_summary")
 
     def formatted_price(self, obj):
         return format_currency(obj.price)
-
     formatted_price.short_description = "Narxi (dona)"
 
     def formatted_summary(self, obj):
         return format_currency(obj.summary)
-
     formatted_summary.short_description = "Jami"
+
+    # --- YANGI: Yordamchi admin uchun faqat o'qish rejimi ---
+    def has_add_permission(self, request, obj=None):
+        # Faqat superadmin yangi mahsulot qo'sha oladi
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        # Faqat superadmin mavjud mahsulotni o'zgartira oladi
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        # Faqat superadmin o'chira oladi
+        return request.user.is_superuser
 
 
 # =========================
@@ -56,32 +69,32 @@ class OrderAdmin(ImportExportModelAdmin):
     inlines = (OrderItemInline,)
 
     # Standart readonly maydonlar
-    readonly_fields = ("total_price", "created_at", "confirmed_at", "delivered_at")
     actions = ("mark_confirmed", "mark_delivered", "mark_canceled")
+    readonly_fields = ("formatted_total_field", "created_at", "confirmed_at", "delivered_at")
+
     fieldsets = (
-        ("Asosiy ma'lumotlar", {"fields": ("shop", "client", "status", "comment")}),
-        ("Moliyaviy ma'lumotlar", {"fields": ("total_price",)}),
-        ("Vaqtlar", {"fields": ("created_at", "confirmed_at", "delivered_at")}),
+        ("ASOSIY MA'LUMOTLAR", {"fields": ("shop", "client", "status", "comment")}),
+        ("VAQTLAR", {"fields": ("created_at", "confirmed_at", "delivered_at")}),
+        ("MOLIYAVIY MA'LUMOTLAR", {"fields": ("formatted_total_field",)}),
     )
 
     # --- DINAMIK RUXSATLAR (Yordamchi admin uchun) ---
 
+    def get_inline_instances(self, request, obj=None):
+        """
+        Endi barcha foydalanuvchilar (shu jumladan yordamchi admin ham)
+        OrderItemInline-ni ko'ra oladi.
+        """
+        return super().get_inline_instances(request, obj)
+
     def get_readonly_fields(self, request, obj=None):
         """Yordamchi adminga statusdan boshqa hamma narsani readonly qilish"""
         if not request.user.is_superuser:
-            # Fieldset-dagi barcha maydonlarni yig'ib olamiz
             all_fields = []
             for group, options in self.fieldsets:
                 all_fields.extend(options.get('fields', []))
-            # 'status' dan boshqa hammasini readonly qaytaramiz
             return [f for f in all_fields if f != 'status']
         return self.readonly_fields
-
-    def get_inline_instances(self, request, obj=None):
-        """Yordamchi adminga OrderItem-larni ko'rsatmaslik"""
-        if not request.user.is_superuser:
-            return []
-        return super().get_inline_instances(request, obj)
 
     def has_add_permission(self, request):
         """Faqat superadmin yangi order qo'sha oladi"""
@@ -106,6 +119,11 @@ class OrderAdmin(ImportExportModelAdmin):
         return format_currency(obj.total_price)
 
     formatted_total.short_description = "Umumiy summa"
+
+    def formatted_total_field(self, obj):
+        return format_currency(obj.total_price)
+
+    formatted_total_field.short_description = "Jami buyurtma summasi"
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('client', 'shop')
