@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.utils import timezone
 from django.utils.html import format_html
+from import_export import resources, fields
+from import_export.admin import ImportExportModelAdmin
 
 from .models import Order, OrderItem
 
@@ -44,7 +46,7 @@ class OrderItemInline(admin.TabularInline):
 # 3. ORDER ADMIN
 # =========================
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(ImportExportModelAdmin):
     # List ko'rinishi sozlamalari
     list_display = ("id_display", "shop", "get_filial", "status", "formatted_total", "created_at")
     list_filter = ("status", "shop", "client__filial_name", "created_at")
@@ -136,11 +138,67 @@ class OrderAdmin(admin.ModelAdmin):
         )
         self.message_user(request, f"{count} ta buyurtma 'Bekor qilindi' holatiga o'tkazildi.")
 
+    def has_export_permission(self, request):
+        """Eksport tugmasi faqat superadminga chiqadi"""
+        return request.user.is_superuser
+
+    def has_import_permission(self, request):
+        """Import tugmasi faqat superadminga chiqadi"""
+        return request.user.is_superuser
+
 # =========================
-# 4. BOSHQA MODELLARNI YASHIRISH
+# 4. EXCEL RESURSI
+# =========================
+class OrderItemResource(resources.ModelResource):
+    restoran_nomi = fields.Field(
+        column_name='Restoran',
+        attribute='order__shop__name'
+    )
+    filial = fields.Field(
+        column_name='Filial',
+        attribute='order__client__filial_name'
+    )
+    mijoz_ismi = fields.Field(
+        column_name='Mijoz',
+        attribute='order__client__full_name'
+    )
+    mahsulot_kategoriyasi = fields.Field(
+        column_name="Kategoriya",
+        attribute='product__category__name'
+    )
+    mahsulot_nomi = fields.Field(
+        column_name='Mahsulot',
+        attribute='product__name'
+    )
+    sana = fields.Field(
+        column_name='Sotib olingan sana',
+        attribute='order__created_at'
+    )
+
+    class Meta:
+        model = OrderItem
+        fields = ('restoran_nomi', 'filial', 'mijoz_ismi', 'mahsulot_kategoriyasi', 'mahsulot_nomi', 'quantity',
+                  'price', 'summary', 'sana')
+        export_order = fields
+
+
+# =========================
+# 5. ORDER ITEM ADMIN (Birlashtirilgan)
 # =========================
 @admin.register(OrderItem)
-class OrderItemAdmin(admin.ModelAdmin):
+class OrderItemAdmin(ImportExportModelAdmin):
+    resource_class = OrderItemResource
+    list_display = ('order', 'product', 'quantity', 'summary')
+    list_filter = ('order', 'product', 'quantity', 'price', 'summary')
+
     def has_module_permission(self, request):
-        """Bu model yordamchi admin menyusida umuman ko'rinmaydi"""
+        """Yordamchi admin menyusida ko'rinmaydi, faqat Superadmin ko'radi"""
+        return request.user.is_superuser
+
+    def has_export_permission(self, request):
+        """Faqat superadmin Excelga yuklay oladi"""
+        return request.user.is_superuser
+
+    def has_import_permission(self, request):
+        """Import tugmasi faqat superadminga chiqadi"""
         return request.user.is_superuser

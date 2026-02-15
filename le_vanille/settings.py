@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'client',
     'product',
     'order',
+    'import_export'
 ]
 
 MIDDLEWARE = [
