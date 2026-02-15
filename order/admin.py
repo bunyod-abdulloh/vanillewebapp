@@ -6,14 +6,12 @@ from .models import Order, OrderItem
 
 
 # =========================
-# YORDAMCHI FUNKSIYA
+# 1. YORDAMCHI FUNKSIYALAR
 # =========================
-
 def format_currency(amount):
-    """Raqamni 1 000 000 ko'rinishida formatlash uchun umumiy funksiya"""
+    """Raqamni chiroyli formatda chiqarish"""
     if amount is not None:
         try:
-            # Mingliklarni probel bilan ajratish va nuqtadan keyingi nollarni olib tashlash
             formatted = "{:,.0f}".format(float(amount)).replace(",", " ")
             return format_html("{}", formatted)
         except (ValueError, TypeError):
@@ -22,21 +20,13 @@ def format_currency(amount):
 
 
 # =========================
-# INLINE: ORDER ITEM
+# 2. INLINES
 # =========================
-
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
     autocomplete_fields = ("product",)
-
-    fields = (
-        "product",
-        "quantity",
-        "formatted_price",
-        "formatted_summary",
-    )
-
+    fields = ("product", "quantity", "formatted_price", "formatted_summary")
     readonly_fields = ("formatted_price", "formatted_summary")
 
     def formatted_price(self, obj):
@@ -51,78 +41,55 @@ class OrderItemInline(admin.TabularInline):
 
 
 # =========================
-# ORDER ADMIN
+# 3. ORDER ADMIN
 # =========================
-
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = (
-        "id_display",
-        "shop",
-        "get_filial",
-        "status",
-        "formatted_total",
-        "created_at",
-    )
-
-    list_filter = (
-        "status",
-        "shop",
-        "client__filial_name",
-        "created_at",
-    )
-
-    search_fields = (
-        "id",
-        "client__full_name",
-        "client__phone",
-        "client__filial_name",
-        "shop__name",
-    )
-
+    # List ko'rinishi sozlamalari
+    list_display = ("id_display", "shop", "get_filial", "status", "formatted_total", "created_at")
+    list_filter = ("status", "shop", "client__filial_name", "created_at")
+    search_fields = ("id", "client__full_name", "client__phone", "client__filial_name", "shop__name")
     ordering = ("-created_at",)
     date_hierarchy = "created_at"
     inlines = (OrderItemInline,)
 
-    readonly_fields = (
-        "total_price",
-        "created_at",
-        "confirmed_at",
-        "delivered_at",
-    )
-
+    # Standart readonly maydonlar
+    readonly_fields = ("total_price", "created_at", "confirmed_at", "delivered_at")
+    actions = ("mark_confirmed", "mark_delivered", "mark_canceled")
     fieldsets = (
-        ("Asosiy ma'lumotlar", {
-            "fields": (
-                "shop",
-                "client",
-                "status",
-                "comment",
-            )
-        }),
-        ("Moliyaviy ma'lumotlar", {
-            "fields": (
-                "total_price",
-            )
-        }),
-        ("Vaqtlar", {
-            "fields": (
-                "created_at",
-                "confirmed_at",
-                "delivered_at",
-            )
-        }),
+        ("Asosiy ma'lumotlar", {"fields": ("shop", "client", "status", "comment")}),
+        ("Moliyaviy ma'lumotlar", {"fields": ("total_price",)}),
+        ("Vaqtlar", {"fields": ("created_at", "confirmed_at", "delivered_at")}),
     )
 
-    actions = (
-        "mark_confirmed",
-        "mark_delivered",
-    )
+    # --- DINAMIK RUXSATLAR (Yordamchi admin uchun) ---
 
-    # =====================
-    # DISPLAY METHODS
-    # =====================
+    def get_readonly_fields(self, request, obj=None):
+        """Yordamchi adminga statusdan boshqa hamma narsani readonly qilish"""
+        if not request.user.is_superuser:
+            # Fieldset-dagi barcha maydonlarni yig'ib olamiz
+            all_fields = []
+            for group, options in self.fieldsets:
+                all_fields.extend(options.get('fields', []))
+            # 'status' dan boshqa hammasini readonly qaytaramiz
+            return [f for f in all_fields if f != 'status']
+        return self.readonly_fields
 
+    def get_inline_instances(self, request, obj=None):
+        """Yordamchi adminga OrderItem-larni ko'rsatmaslik"""
+        if not request.user.is_superuser:
+            return []
+        return super().get_inline_instances(request, obj)
+
+    def has_add_permission(self, request):
+        """Faqat superadmin yangi order qo'sha oladi"""
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        """Faqat superadmin o'chira oladi"""
+        return request.user.is_superuser
+
+    # --- DISPLAY METODLARI ---
     def id_display(self, obj):
         return f"#{obj.id}"
 
@@ -132,60 +99,48 @@ class OrderAdmin(admin.ModelAdmin):
         return obj.client.filial_name if obj.client else "-"
 
     get_filial.short_description = "Filial"
-    get_filial.admin_order_field = "client__filial_name"
 
     def formatted_total(self, obj):
         return format_currency(obj.total_price)
 
     formatted_total.short_description = "Umumiy summa"
-    formatted_total.admin_order_field = "total_price"
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('client', 'shop')
 
-    # =====================
-    # ACTIONS
-    # =====================
-
-    @admin.action(description="Tasdiqlangan deb belgilash")
+    # --- ACTIONS ---
+    @admin.action(description="Tanlanganlarni 'Tasdiqlandi' holatiga o'tkazish")
     def mark_confirmed(self, request, queryset):
-        queryset.filter(status=Order.Status.CREATED).update(
-            status=Order.Status.CONFIRMED,
+        # Hech qanday filtrsiz barcha tanlanganlarni yangilaymiz
+        count = queryset.update(
+            status="confirmed",
             confirmed_at=timezone.now()
         )
+        self.message_user(request, f"{count} ta buyurtma 'Tasdiqlandi' holatiga o'tkazildi.")
 
-    @admin.action(description="Yetkazilgan deb belgilash")
+    @admin.action(description="Tanlanganlarni 'Yetkazildi' holatiga o'tkazish")
     def mark_delivered(self, request, queryset):
-        queryset.filter(status=Order.Status.CONFIRMED).update(
-            status=Order.Status.DELIVERED,
+        # Hech qanday filtrsiz barcha tanlanganlarni yangilaymiz
+        count = queryset.update(
+            status="delivered",
             delivered_at=timezone.now()
         )
+        self.message_user(request, f"{count} ta buyurtma 'Yetkazildi' holatiga o'tkazildi.")
 
+    @admin.action(description="Tanlanganlarni 'Bekor qilindi' holatiga o'tkazish")
+    def mark_canceled(self, request, queryset):
+        # Hech qanday filtrsiz barcha tanlanganlarni yangilaymiz
+        count = queryset.update(
+            status="canceled",
+            delivered_at=timezone.now()
+        )
+        self.message_user(request, f"{count} ta buyurtma 'Bekor qilindi' holatiga o'tkazildi.")
 
 # =========================
-# ORDER ITEM ADMIN
+# 4. BOSHQA MODELLARNI YASHIRISH
 # =========================
-
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = (
-        "order",
-        "product",
-        "quantity",
-        "formatted_price",
-        "formatted_summary",
-    )
-
-    list_filter = ("product__category", "order")
-    search_fields = ("product__name", "order__client__full_name")
-    autocomplete_fields = ("product",)
-
-    def formatted_price(self, obj):
-        return format_currency(obj.price)
-
-    formatted_price.short_description = "Narxi"
-
-    def formatted_summary(self, obj):
-        return format_currency(obj.summary)
-
-    formatted_summary.short_description = "Jami summa"
+    def has_module_permission(self, request):
+        """Bu model yordamchi admin menyusida umuman ko'rinmaydi"""
+        return request.user.is_superuser
