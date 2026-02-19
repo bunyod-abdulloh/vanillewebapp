@@ -4,9 +4,9 @@ from django.db import models
 class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name="Kategoriya nomi")
 
-    class Meta:
-        verbose_name = "Kategoriya"
-        verbose_name_plural = "Kategoriyalar"
+    # class Meta:
+    #     verbose_name = "Kategoriya"
+    #     verbose_name_plural = "Kategoriyalar"
 
     def __str__(self):
         return self.name
@@ -30,9 +30,9 @@ class Product(models.Model):
         verbose_name="Mavjudmi?"
     )
 
-    class Meta:
-        verbose_name = "Mahsulot"
-        verbose_name_plural = "Mahsulotlar"
+    # class Meta:
+    #     verbose_name = "Mahsulot"
+    #     verbose_name_plural = "Mahsulotlar"
 
     def __str__(self):
         return self.name
