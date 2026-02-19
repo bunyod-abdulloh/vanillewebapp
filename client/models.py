@@ -22,4 +22,4 @@ class Client(models.Model):
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
 
     def __str__(self):
-        return self.full_name
+        return f"{self.full_name} ({self.filial_name})"

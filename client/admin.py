@@ -17,16 +17,15 @@ class ShopAdmin(ModelAdmin):
     ordering = ("name",)
 
     # TUZATILDI: header=True bo'lganda tuple qaytarish shart
-    @display(description="Do‘kon nomi", header=True)
+    @display(description="Do‘kon nomi")
     def name_display(self, obj):
         # Format: (Sarlavha, Ikonka_yoki_Izoh)
-        return obj.name, "storefront"
+        return obj.name
 
     @display(description="Mijozlar soni", label=True)
     def clients_count_badge(self, obj):
         count = obj.clients.count()
-        label_color = "success" if count > 0 else "warning"
-        return f"{count} ta mijoz", label_color
+        return f"{count} ta mijoz"
 
     def get_list_display_metrics(self, request):
         return [
@@ -70,9 +69,9 @@ class ClientAdmin(ModelAdmin):
     )
 
     # TUZATILDI: header=True uchun tuple qaytarildi
-    @display(description="Mijoz", header=True)
+    @display(description="Mijoz")
     def full_name_display(self, obj):
-        return obj.full_name, "person"
+        return obj.full_name
 
     @display(description="Telefon")
     def phone_link(self, obj):
@@ -88,7 +87,7 @@ class ClientAdmin(ModelAdmin):
     @display(description="Do‘kon", label=True)
     def shop_badge(self, obj):
         val = obj.shop.name if obj.shop else "-"
-        return val, "success"
+        return val
 
     @display(description="Joylashuv")
     def location_link(self, obj):

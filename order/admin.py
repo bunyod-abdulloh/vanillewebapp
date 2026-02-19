@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.utils.html import format_html
 from import_export import resources, fields
 from unfold.admin import ModelAdmin, TabularInline
+from unfold.contrib.filters.admin import RelatedDropdownFilter
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
 from unfold.decorators import action, display
 
@@ -79,9 +80,15 @@ class OrderItemResource(resources.ModelResource):
 class OrderAdmin(ModelAdmin):
     import_form_class = ImportForm
     export_form_class = ExportForm
-
+    list_filter_submit = True
     list_display = ("id_display", "shop_badge", "get_filial", "status_badge", "formatted_total", "created_at")
-    list_filter = ("status", "shop", "client__filial_name", "created_at")
+    list_filter = (
+        "status",
+        ("shop", RelatedDropdownFilter),
+        ("client", RelatedDropdownFilter),
+        # ("client__full_name", RelatedDropdownFilter),
+        "created_at"
+    )
     search_fields = ("id", "client__full_name", "client__phone", "client__filial_name", "shop__name")
     ordering = ("-created_at",)
     date_hierarchy = "created_at"
@@ -177,8 +184,24 @@ class OrderItemAdmin(ModelAdmin):
     export_form_class = ExportForm
     resource_class = OrderItemResource
 
-    list_display = ('order', 'product', 'quantity', 'summary_display')
-    list_filter = ('order', 'product', 'quantity')
+    list_display = ('order', 'shop_name', 'category_name', 'product', 'quantity',
+                    'summary_display')
+    list_filter_submit = True
+    list_filter = (
+        ('order', RelatedDropdownFilter),
+        'order__created_at',  # agar kerak bo'lsa
+        ('order__shop', RelatedDropdownFilter),
+        ('product__category', RelatedDropdownFilter),
+        ('product', RelatedDropdownFilter),
+    )
+
+    @display(description="Restoran")
+    def shop_name(self, obj):
+        return obj.order.shop.name if obj.order and obj.order.shop else "—"
+
+    @display(description="Kategoriya")
+    def category_name(self, obj):
+        return obj.product.category.name if obj.product and obj.product.category else ""
 
     @display(description="Jami")
     def summary_display(self, obj):
