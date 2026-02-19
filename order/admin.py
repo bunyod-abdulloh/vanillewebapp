@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.utils import timezone
 from django.utils.html import format_html
-from django.utils.translation import gettext_lazy as _
 from import_export import resources, fields
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
@@ -11,7 +10,7 @@ from .models import Order, OrderItem
 
 
 # =========================
-# 1. YORDAMCHI FUNKSIYALAR
+# YORDAMCHI FUNKSIYA
 # =========================
 def format_currency_text(amount):
     """Raqamni chiroyli formatda chiqarish"""
@@ -25,11 +24,10 @@ def format_currency_text(amount):
 
 
 # =========================
-# 2. INLINES
+# INLINE
 # =========================
 class OrderItemInline(TabularInline):
     model = OrderItem
-    tab = True
     extra = 0
     verbose_name_plural = "Buyurtma tarkibi"
     autocomplete_fields = ("product",)
@@ -55,7 +53,7 @@ class OrderItemInline(TabularInline):
 
 
 # =========================
-# 3. EXCEL RESURSI
+# EXCEL RESURSI
 # =========================
 class OrderItemResource(resources.ModelResource):
     restoran_nomi = fields.Field(column_name='Restoran', attribute='order__shop__name')
@@ -67,12 +65,15 @@ class OrderItemResource(resources.ModelResource):
 
     class Meta:
         model = OrderItem
-        fields = ('restoran_nomi', 'filial', 'mijoz_ismi', 'mahsulot_kategoriyasi', 'mahsulot_nomi', 'quantity',
-                  'price', 'summary', 'sana')
+        fields = (
+            'restoran_nomi', 'filial', 'mijoz_ismi',
+            'mahsulot_kategoriyasi', 'mahsulot_nomi', 'quantity',
+            'price', 'summary', 'sana'
+        )
 
 
 # =========================
-# 4. ORDER ADMIN
+# ORDER ADMIN
 # =========================
 @admin.register(Order)
 class OrderAdmin(ModelAdmin):
@@ -84,27 +85,23 @@ class OrderAdmin(ModelAdmin):
     search_fields = ("id", "client__full_name", "client__phone", "client__filial_name", "shop__name")
     ordering = ("-created_at",)
     date_hierarchy = "created_at"
+
+    readonly_fields = ("created_at", "confirmed_at", "delivered_at", "formatted_total_field")
     inlines = (OrderItemInline,)
 
-    readonly_fields = ("formatted_total_field", "created_at", "confirmed_at", "delivered_at")
-
     fieldsets = (
-        (_("Asosiy ma'lumotlar"), {
+        ("Asosiy ma'lumotlar", {
             "fields": ("shop", "client", "status", "comment"),
-            "classes": ["tab"],
         }),
-        (_("Vaqtlar"), {
+        ("Vaqtlar", {
             "fields": ("created_at", "confirmed_at", "delivered_at"),
-            "classes": ["tab"],
         }),
-        (_("Moliyaviy ma'lumotlar"), {
+        ("Moliyaviy hisobot", {
             "fields": ("formatted_total_field",),
-            "classes": ["tab"],
-            "inlines": ["OrderItemInline"],
         }),
     )
 
-    # --- DISPLAY METODLARI ---
+    # DISPLAY METODLARI
     @display(description="ID")
     def id_display(self, obj):
         return format_html('<span class="font-bold text-indigo-600">#{}</span>', obj.id)
@@ -135,37 +132,11 @@ class OrderAdmin(ModelAdmin):
     def formatted_total(self, obj):
         return format_currency_text(obj.total_price)
 
-    @display(description="Jami buyurtma summasi")
+    @display(description="Jami buyurtma")
     def formatted_total_field(self, obj):
         return format_currency_text(obj.total_price)
 
-    # --- DASHBOARD METRICS ---
-    def get_list_display_metrics(self, request):
-        from django.db.models import Sum, Avg
-        stats = Order.objects.aggregate(total_sum=Sum('total_price'), avg_sale=Avg('total_price'))
-
-        return [
-            {
-                "title": "Jami tushum",
-                "value": f"{int(stats['total_sum'] or 0):,} UZS".replace(",", " "),
-                "icon": "payments",
-                "color": "success",
-            },
-            {
-                "title": "Jami buyurtmalar",
-                "value": Order.objects.count(),
-                "icon": "shopping_cart",
-                "color": "primary",
-            },
-            {
-                "title": "O'rtacha savdo",
-                "value": f"{int(stats['avg_sale'] or 0):,} UZS".replace(",", " "),
-                "icon": "analytics",
-                "color": "info",
-            },
-        ]
-
-    # --- ACTIONS ---
+    # ACTIONS
     @action(description="Tanlanganlarni 'Tasdiqlandi' holatiga o'tkazish")
     def mark_confirmed(self, request, queryset):
         queryset.update(status="confirmed", confirmed_at=timezone.now())
@@ -184,17 +155,21 @@ class OrderAdmin(ModelAdmin):
         return super().get_queryset(request).select_related('client', 'shop')
 
     # Ruxsatlar
-    def has_add_permission(self, request): return request.user.is_superuser
+    def has_add_permission(self, request):
+        return request.user.is_superuser
 
-    def has_delete_permission(self, request, obj=None): return request.user.is_superuser
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
-    def has_export_permission(self, request): return request.user.is_superuser
+    def has_export_permission(self, request):
+        return request.user.is_superuser
 
-    def has_import_permission(self, request): return request.user.is_superuser
+    def has_import_permission(self, request):
+        return request.user.is_superuser
 
 
 # =========================
-# 5. ORDER ITEM ADMIN
+# ORDER ITEM ADMIN (agar kerak bo'lsa)
 # =========================
 @admin.register(OrderItem)
 class OrderItemAdmin(ModelAdmin):
@@ -203,10 +178,11 @@ class OrderItemAdmin(ModelAdmin):
     resource_class = OrderItemResource
 
     list_display = ('order', 'product', 'quantity', 'summary_display')
-    list_filter = ('order', 'product', 'quantity', 'price', 'summary')
+    list_filter = ('order', 'product', 'quantity')
 
     @display(description="Jami")
     def summary_display(self, obj):
         return format_currency_text(obj.summary)
 
-    def has_module_permission(self, request): return request.user.is_superuser
+    def has_module_permission(self, request):
+        return request.user.is_superuser

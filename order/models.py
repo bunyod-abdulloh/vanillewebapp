@@ -37,7 +37,7 @@ class Order(models.Model):
         Order.objects.filter(pk=self.pk).update(total_price=total)
 
     def __str__(self):
-        return f"#{self.id} — {self.client.full_name}"
+        return f"#{self.id}"
 
 
 class OrderItem(models.Model):
