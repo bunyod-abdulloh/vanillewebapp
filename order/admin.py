@@ -29,6 +29,7 @@ def format_currency_text(amount):
 # =========================
 class OrderItemInline(TabularInline):
     model = OrderItem
+    tab = True
     extra = 0
     verbose_name_plural = "Buyurtma tarkibi"
     autocomplete_fields = ("product",)
@@ -99,6 +100,7 @@ class OrderAdmin(ModelAdmin):
         (_("Moliyaviy ma'lumotlar"), {
             "fields": ("formatted_total_field",),
             "classes": ["tab"],
+            "inlines": ["OrderItemInline"],
         }),
     )
 
