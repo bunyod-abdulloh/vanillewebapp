@@ -49,7 +49,7 @@ class ProductAdmin(ModelAdmin):  # Unfold ModelAdmin
     # Tahrirlash sahifasini zamonaviy Tab ko'rinishiga keltirish
     fieldsets = (
         (_("Mahsulot ma'lumotlari"), {
-            "fields": ("name", "category", "description"),
+            "fields": ("name", "category", "description", "image",),
             "classes": ["tab"],
         }),
         (_("Narx va Holat"), {
