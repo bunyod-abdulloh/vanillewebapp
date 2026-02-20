@@ -5,12 +5,12 @@
              class="h-20 w-full max-w-[280px] object-scale-down">
     </header>
 
-    <div class="relative rounded-[2rem] overflow-hidden h-32 shadow-lg">
+    <div class="relative rounded-[2rem] overflow-hidden h-32">
         <div id="banner-carousel" class="w-full h-full relative">
             {% for banner in banners %}
             <img
                     src="{{ banner.image.url }}"
-                    class="absolute inset-0 w-full h-full object-contain transition-opacity duration-700 {% if forloop.first %}opacity-100{% else %}opacity-0{% endif %}"
+                    class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 {% if forloop.first %}opacity-100{% else %}opacity-0{% endif %}"
                     alt="Banner"
             >
             {% endfor %}
