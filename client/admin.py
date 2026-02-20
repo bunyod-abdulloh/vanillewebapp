@@ -4,8 +4,14 @@ from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 from unfold.decorators import display
 
-from .models import Shop, Client
+from .models import Shop, Client, Banner
 
+
+@admin.register(Banner)
+class BannerAdmin(ModelAdmin):
+    list_display = (
+        "title",
+    )
 
 @admin.register(Shop)
 class ShopAdmin(ModelAdmin):

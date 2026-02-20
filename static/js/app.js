@@ -29,6 +29,23 @@ function setupTelegramUser() {
 // ========================
 function initializeApp() {
     setupTelegramUser();
+    const slides = document.querySelectorAll("#banner-carousel img");
+
+    if (slides.length === 0) return;
+
+    let current = 0;
+
+    setInterval(() => {
+
+        slides[current].classList.remove("opacity-100");
+        slides[current].classList.add("opacity-0");
+
+        current = (current + 1) % slides.length;
+
+        slides[current].classList.remove("opacity-0");
+        slides[current].classList.add("opacity-100");
+
+    }, 4000);
 
     const dataElement = document.getElementById('products-data');
     if (!dataElement) {

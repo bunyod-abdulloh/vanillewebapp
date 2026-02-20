@@ -5,14 +5,16 @@
              class="h-20 w-full max-w-[280px] object-scale-down">
     </header>
 
-    <div class="bg-gradient-to-r from-[#a8000b] to-[#7a0008] rounded-[2.5rem] p-6 text-white relative overflow-hidden h-44 flex items-center shadow-lg">
-        <div class="z-10 w-2/3">
-            <h2 class="text-2xl font-black leading-tight italic">Mazzali Lahzalar!</h2>
-            <p class="text-white/80 text-xs mt-2 font-medium">Barcha burgerlar uchun <br>
-                <span class="text-yellow-400 font-bold text-lg">-20% CHEGIRMA</span>
-            </p>
+    <div class="relative rounded-[2rem] overflow-hidden h-32 shadow-lg bg-gradient-to-r from-[#a8000b] to-[#7a0008]">
+        <div id="banner-carousel" class="w-full h-full relative">
+            {% for banner in banners %}
+            <img
+                    src="{{ banner.image.url }}"
+                    class="absolute inset-0 w-full h-full object-contain transition-opacity duration-700 {% if forloop.first %}opacity-100{% else %}opacity-0{% endif %}"
+                    alt="Banner"
+            >
+            {% endfor %}
         </div>
-        <img src="{% static 'img/promo.png' %}" class="absolute -right-4 -bottom-4 w-36 rotate-12 opacity-40"/>
     </div>
 
     <section>

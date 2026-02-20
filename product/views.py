@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 
+from client.models import Banner
 from product.models import Product, Category
 
 
@@ -14,6 +15,9 @@ def home_page(request):
     base_url = request.build_absolute_uri('/')[:-1]
 
     products_data = []
+
+    banners = Banner.objects.filter(is_active=True)
+
     for p in active_products:
         products_data.append({
             'id': p.id,
@@ -25,7 +29,8 @@ def home_page(request):
 
     context = {
         'categories': categories,
-        'products_list': products_data
+        'products_list': products_data,
+        'banners': banners,
     }
     return render(request, 'index.html', context)
 
